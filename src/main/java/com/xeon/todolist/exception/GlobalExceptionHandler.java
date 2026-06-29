@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> handleNotFoundException(NotFoundException e){
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(
-                        new ErrorResponse(
-                                LocalDateTime.now(),
-                                404,
-                                e.getMessage(),
-                                "Resource not found"
-                        )
-                );
+        return buildErrorResponse(HttpStatus.NOT_FOUND, LocalDateTime.now(),404, e.getMessage(),"Resource Not Found");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException e){
+        return buildErrorResponse(HttpStatus.FORBIDDEN,LocalDateTime.now(),403,e.getMessage(),"Access Denied");
+    }
+
+    public ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus httpStatus, LocalDateTime localDateTime, int status, String error, String message){
+        return ResponseEntity.status(httpStatus).body(new ErrorResponse(localDateTime, status, error, message));
     }
 }
