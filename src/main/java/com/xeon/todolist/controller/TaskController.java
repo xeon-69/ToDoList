@@ -25,7 +25,6 @@ public class TaskController {
         return ResponseEntity.ok(taskResponse);
     }
 
-
     @PutMapping("{taskId}")
     public ResponseEntity<?> update(@PathVariable long taskId, @RequestBody UpdateTaskRequest updateTaskRequest) {
         TaskResponse taskResponse = taskService.updateTask(taskId, updateTaskRequest);
@@ -43,13 +42,30 @@ public class TaskController {
 //        return ResponseEntity.ok(taskService.getAllTasks());
 //    }
 
+//    @GetMapping
+//    public ResponseEntity<Page<TaskResponse>> getTasksByPage(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam List<String> sort
+//    ) {
+//        Page<TaskResponse> pageResponse = taskService.getAllTasksByPage(page, size, sort);
+//        return ResponseEntity.ok(pageResponse);
+//    }
+
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getTasksByPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam List<String> sort
+            @RequestParam(required = false) List<String> sort
     ) {
-        Page<TaskResponse> pageResponse = taskService.getAllTasksByPage(page, size, sort);
+
+        if (sort == null) {
+            sort = List.of("id"); // default sorting
+        }
+
+        Page<TaskResponse> pageResponse =
+                taskService.getAllTasksByPage(page, size, sort);
+
         return ResponseEntity.ok(pageResponse);
     }
 

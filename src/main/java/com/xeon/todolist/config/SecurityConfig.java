@@ -27,26 +27,72 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
 
+//    @Bean
+//    @Order(1)
+//    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+//        return http
+//                .securityMatcher("/api/auth/**", "/error")
+//                .csrf(csrf -> csrf.disable())
+//                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(request -> request.anyRequest().permitAll())
+//                .build();
+//    }
+//
+//    @Bean
+//    @Order(2)
+//    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+//        return http
+//                .csrf(csrf -> csrf.disable())
+//                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(request -> request.anyRequest().authenticated())
+//                .authenticationProvider(authenticationProvider())
+//                .oauth2ResourceServer(auth2 -> auth2.jwt(jwt -> jwt.decoder(jwtDecoder())))
+//                .build();
+//    }
+
     @Bean
     @Order(1)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+
         return http
-                .securityMatcher("/api/auth/**", "/error")
+                //for separate frontend
+//                .cors(cors -> {})
+                .securityMatcher("/api/auth/**", "/error",
+                        "/",
+                        "/index.html",
+                        "/login.html",
+                        "/js/**",
+                        "/css/**",
+                        "/images/**")
+
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(request -> request.anyRequest().permitAll())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                )
                 .build();
     }
 
     @Bean
     @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+
         return http
+                //for separate frontend
+//                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(request -> request.anyRequest().authenticated())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                )
                 .authenticationProvider(authenticationProvider())
-                .oauth2ResourceServer(auth2 -> auth2.jwt(jwt -> jwt.decoder(jwtDecoder())))
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(jwt -> jwt.decoder(jwtDecoder()))
+                )
                 .build();
     }
 

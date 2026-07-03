@@ -1,10 +1,8 @@
 package com.xeon.todolist.controller;
 
 import com.xeon.todolist.dto.*;
-import com.xeon.todolist.service.AuthService;
 import com.xeon.todolist.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
