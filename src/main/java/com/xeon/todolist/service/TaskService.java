@@ -4,30 +4,26 @@ import com.xeon.todolist.dto.CreateTaskRequest;
 import com.xeon.todolist.dto.TaskResponse;
 import com.xeon.todolist.dto.UpdateTaskRequest;
 import com.xeon.todolist.entity.Users;
+import com.xeon.todolist.exception.DuplicateTaskException;
 import com.xeon.todolist.exception.TaskAccessDeniedException;
 import com.xeon.todolist.exception.TaskNotFoundException;
-import com.xeon.todolist.exception.UserNotFoundException;
 import com.xeon.todolist.mapper.TaskMapper;
 import com.xeon.todolist.entity.Tasks;
 import com.xeon.todolist.repository.TaskRepository;
-import com.xeon.todolist.repository.UserRepository;
-import com.xeon.todolist.security.UserPrincipal;
 import com.xeon.todolist.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
+@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class TaskService {
@@ -40,36 +36,53 @@ public class TaskService {
 
     @Transactional
     public TaskResponse createTask(CreateTaskRequest createTaskRequest) {
+
         Users user = securityUtil.getCurrentUser();
+        log.debug("Creating task for the user {}", user.getUsername());
+        if (taskRepository.existsByTitleAndUser(createTaskRequest.getTitle(), user)) {
+            log.warn("User '{}' attempted to create a duplicate task title: '{}'",
+                    user.getUsername(), createTaskRequest.getTitle());
+            throw new DuplicateTaskException("A task with this title already exists.");
+        }
         Tasks task = new Tasks(); // need save() since it creates a new entity
         task.setTitle(createTaskRequest.getTitle());
         task.setPriority(createTaskRequest.getPriority());
         task.setUser(user);
-        return taskMapper.toResponse(taskRepository.save(task));
+        Tasks createdTask = taskRepository.save(task);
+        log.info("Task ID: {} created for the user {}", createdTask.getId(), user.getUsername());
+        return taskMapper.toResponse(createdTask);
     }
 
     @Transactional
     public void deleteTask(long taskId) {
         Users user = securityUtil.getCurrentUser();
+        log.debug("Deleting task for the user {}", user.getUsername());
         Tasks task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        if (!task.getUser().getId().equals(user.getId())){
+        if (!task.getUser().getId().equals(user.getId())) {
+            log.warn("Accessing to task ID: {} denied for the user {} ", taskId, user.getUsername());
             throw new TaskAccessDeniedException("Task Access Denied");
         }
         taskRepository.delete(task);
+        log.info("Task ID: {} has been deleted", taskId);
     }
 
     @Transactional
     public TaskResponse updateTask(long taskId, UpdateTaskRequest updateTaskRequest) {
+        log.debug("Searching for the task...");
         Tasks task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
         //check user first
         Users user = securityUtil.getCurrentUser();
+        log.debug("Updating task ID: {} for the user {}", task.getId(), user.getUsername());
         if (!task.getUser().getId().equals(user.getId())) {
+            log.warn("Accessed denied for the user {} ", user.getUsername());
             throw new TaskAccessDeniedException("Task Access Denied");
         }
         task.setTitle(updateTaskRequest.getTitle());
         task.setCompleted(updateTaskRequest.isCompleted());
         task.setPriority(updateTaskRequest.getPriority());
-        return taskMapper.toResponse(task);
+        Tasks updatedTask = taskRepository.saveAndFlush(task);
+        log.info("Task ID: {} has been updated", updatedTask.getId());
+        return taskMapper.toResponse(updatedTask);
     }
 
     @Transactional
