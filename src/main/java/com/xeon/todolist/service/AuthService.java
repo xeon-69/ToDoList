@@ -5,6 +5,8 @@ import com.xeon.todolist.dto.LoginResponse;
 import com.xeon.todolist.dto.RegisterRequest;
 import com.xeon.todolist.dto.RegisterResponse;
 import com.xeon.todolist.entity.Users;
+import com.xeon.todolist.exception.InvalidCredentialsException;
+import com.xeon.todolist.exception.UserAlreadyExistException;
 import com.xeon.todolist.repository.UserRepository;
 import com.xeon.todolist.security.JWTService;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +18,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
@@ -36,19 +40,20 @@ public class AuthService {
         return new RegisterResponse(users.getUsername());
     }
 
+    @Transactional
     public RegisterResponse registerUser(RegisterRequest registerRequest) {
         log.debug("Checking if user exists with username {} ...", registerRequest.getUsername());
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             log.warn("User with username {} already exists", registerRequest.getUsername());
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+            throw new UserAlreadyExistException("User with username " + registerRequest.getUsername() + " already exists");
         }
         log.debug("Registering user {} ...", registerRequest.getUsername());
         Users user = new Users();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        userRepository.save(user);
+        Users createdUser = userRepository.saveAndFlush(user);
         log.info("User {} registered successfully!", registerRequest.getUsername());
-        return mapToRegisterResponse(user);
+        return mapToRegisterResponse(createdUser);
     }
 
 
@@ -61,8 +66,8 @@ public class AuthService {
             log.info("Logged in successfully for the user {}", loginRequest.getUsername());
             return new LoginResponse(token);
         } catch (AuthenticationException e) {
-            log.warn("Authentication failed for the user {}. Reason: {}", loginRequest.getUsername(), e.getMessage());
-            throw new RuntimeException(e);
+            log.warn("Authentication failed for the user '{}'. Reason: '{}'", loginRequest.getUsername(), e.getMessage());
+            throw new InvalidCredentialsException("Invalid Username or password");
         }
     }
 }

@@ -34,6 +34,21 @@ public class TaskService {
 
     private final SecurityUtil securityUtil;
 
+    private Tasks getTaskAndValidateOwnership(long taskId) {
+        log.debug("Searching for task ID: {}", taskId);
+
+        Tasks task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + taskId));
+
+        Users user = securityUtil.getCurrentUser();
+        if (!task.getUser().getId().equals(user.getId())) {
+            log.warn("Access denied for user '{}' on task ID: {}", user.getUsername(), taskId);
+            throw new TaskAccessDeniedException("Task Access Denied");
+        }
+
+        return task;
+    }
+
     @Transactional
     public TaskResponse createTask(CreateTaskRequest createTaskRequest) {
 
@@ -55,59 +70,40 @@ public class TaskService {
 
     @Transactional
     public void deleteTask(long taskId) {
-        Users user = securityUtil.getCurrentUser();
-        log.debug("Deleting task for the user {}", user.getUsername());
-        Tasks task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        if (!task.getUser().getId().equals(user.getId())) {
-            log.warn("Accessing to task ID: {} denied for the user {} ", taskId, user.getUsername());
-            throw new TaskAccessDeniedException("Task Access Denied");
-        }
-        taskRepository.delete(task);
+        Tasks taskToDelete = getTaskAndValidateOwnership(taskId);
+        taskRepository.delete(taskToDelete);
         log.info("Task ID: {} has been deleted", taskId);
     }
 
     @Transactional
     public TaskResponse updateTask(long taskId, UpdateTaskRequest updateTaskRequest) {
-        log.debug("Searching for the task...");
-        Tasks task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        //check user first
-        Users user = securityUtil.getCurrentUser();
-        log.debug("Updating task ID: {} for the user {}", task.getId(), user.getUsername());
-        if (!task.getUser().getId().equals(user.getId())) {
-            log.warn("Accessed denied for the user {} ", user.getUsername());
-            throw new TaskAccessDeniedException("Task Access Denied");
-        }
-        task.setTitle(updateTaskRequest.getTitle());
-        task.setCompleted(updateTaskRequest.isCompleted());
-        task.setPriority(updateTaskRequest.getPriority());
-        Tasks updatedTask = taskRepository.saveAndFlush(task);
+        Tasks taskToUpdate = getTaskAndValidateOwnership(taskId);
+        taskToUpdate.setTitle(updateTaskRequest.getTitle());
+        taskToUpdate.setCompleted(updateTaskRequest.isCompleted());
+        taskToUpdate.setPriority(updateTaskRequest.getPriority());
+        Tasks updatedTask = taskRepository.saveAndFlush(taskToUpdate);
         log.info("Task ID: {} has been updated", updatedTask.getId());
         return taskMapper.toResponse(updatedTask);
     }
 
     @Transactional
     public TaskResponse toggleTaskStatus(long taskId) {
-        Tasks task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        Users user = securityUtil.getCurrentUser();
-        if (!task.getUser().getId().equals(user.getId())) {
-            throw new TaskAccessDeniedException("Task Access Denied");
-        }
-        task.setCompleted(!task.isCompleted());
-        return taskMapper.toResponse(task);
+        Tasks taskToToggle = getTaskAndValidateOwnership(taskId);
+        taskToToggle.setCompleted(!taskToToggle.isCompleted());
+        Tasks toggledTask = taskRepository.saveAndFlush(taskToToggle);
+        log.info("Task ID: {} has been toggled and changed to '{}'", taskId, toggledTask.isCompleted());
+        return taskMapper.toResponse(toggledTask);
     }
 
     public TaskResponse getTask(long taskId) {
-        Tasks task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        Users user = securityUtil.getCurrentUser();
-        if (!task.getUser().getId().equals(user.getId())) {
-            throw new TaskAccessDeniedException("Task Access Denied");
-        }
+        Tasks task = getTaskAndValidateOwnership(taskId);
         return taskMapper.toResponse(task);
     }
 
     public Page<TaskResponse> getAllTasksByPage(int page, int size, List<String> sort) {
 
         Users user = securityUtil.getCurrentUser();
+        log.debug("Fetching paginated tasks for user: {}, page: {}, size: {}", user.getUsername(), page, size);
         Pageable pageable = PageRequest.of(page, size, parseSort(sort));
 
         return taskRepository.findTasksByUsername(user.getUsername(), pageable).map(taskMapper::toResponse);

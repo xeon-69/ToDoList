@@ -41,6 +41,16 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, LocalDateTime.now(),  400, e.getMessage(), "Bad Request" );
     }
 
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<?> handleUserAlreadyExistException(UserAlreadyExistException e){
+        return buildErrorResponse(HttpStatus.CONFLICT, LocalDateTime.now(), 409, e.getMessage(), "User already exists");
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<?> handleInvalidCredentialsException(InvalidCredentialsException e){
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, LocalDateTime.now(), 401, e.getMessage(), "Unauthorized");
+    }
+
     public ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus httpStatus, LocalDateTime localDateTime, int status, String error, String message){
         return ResponseEntity.status(httpStatus).body(new ErrorResponse(localDateTime, status, error, message));
     }
