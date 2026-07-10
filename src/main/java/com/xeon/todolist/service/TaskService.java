@@ -34,16 +34,16 @@ public class TaskService {
 
     private final SecurityUtil securityUtil;
 
-    private Tasks getTaskAndValidateOwnership(long taskId) {
+    public Tasks getTaskAndValidateOwnership(long taskId) {
         log.debug("Searching for task ID: {}", taskId);
 
         Tasks task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + taskId));
+                .orElseThrow(() -> new TaskNotFoundException("Task with ID: " + taskId + " not found"));
 
         Users user = securityUtil.getCurrentUser();
         if (!task.getUser().getId().equals(user.getId())) {
             log.warn("Access denied for user '{}' on task ID: {}", user.getUsername(), taskId);
-            throw new TaskAccessDeniedException("Task Access Denied");
+            throw new TaskAccessDeniedException("Task access denied");
         }
 
         return task;

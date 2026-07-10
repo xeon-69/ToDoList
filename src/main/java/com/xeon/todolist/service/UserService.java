@@ -46,6 +46,7 @@ public class UserService {
         return userRepository.findAll().stream().map(userMapper::toResponse).toList();
     }
 
+
     @Transactional
     public void deleteUser(long userId){
         Users user = findUserById(userId);

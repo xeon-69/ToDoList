@@ -2,16 +2,14 @@ package com.xeon.todolist.entity;
 
 import com.xeon.todolist.enums.TaskPriority;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Tasks extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

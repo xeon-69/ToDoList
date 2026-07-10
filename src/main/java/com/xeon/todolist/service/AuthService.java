@@ -11,7 +11,6 @@ import com.xeon.todolist.repository.UserRepository;
 import com.xeon.todolist.security.JWTService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -19,7 +18,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
@@ -67,7 +65,7 @@ public class AuthService {
             return new LoginResponse(token);
         } catch (AuthenticationException e) {
             log.warn("Authentication failed for the user '{}'. Reason: '{}'", loginRequest.getUsername(), e.getMessage());
-            throw new InvalidCredentialsException("Invalid Username or password");
+            throw new InvalidCredentialsException("Invalid username or password");
         }
     }
 }
