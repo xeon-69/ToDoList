@@ -88,13 +88,9 @@ class AuthServiceTest {
         // user request
         RegisterRequest registerRequest = new RegisterRequest("existingUsername", "password");
 
-//        when(userRepository.findByUsername("existingUsername")).thenReturn(Optional.of(new Users()));
-
         when(userRepository.existsByUsername(any())).thenReturn(true);
         // the exception that throws after executing the method
-        UserAlreadyExistException exception = assertThrows(UserAlreadyExistException.class, () -> {
-            authService.registerUser(registerRequest);
-        });
+        UserAlreadyExistException exception = assertThrows(UserAlreadyExistException.class, () -> authService.registerUser(registerRequest));
 
         // compare the exception messages
         assertEquals("User with username existingUsername already exists", exception.getMessage());
@@ -132,9 +128,7 @@ class AuthServiceTest {
         // force it to throw the exception
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenThrow(new BadCredentialsException("Bad Credentials"));
 
-        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
-            authService.verifyUser(loginRequest);
-        });
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> authService.verifyUser(loginRequest));
 
         assertEquals("Invalid username or password", exception.getMessage());
 
