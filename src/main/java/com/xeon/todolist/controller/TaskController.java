@@ -3,7 +3,6 @@ package com.xeon.todolist.controller;
 import com.xeon.todolist.dto.CreateTaskRequest;
 import com.xeon.todolist.dto.TaskResponse;
 import com.xeon.todolist.dto.UpdateTaskRequest;
-import com.xeon.todolist.dto.UpdateUserRequest;
 import com.xeon.todolist.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,14 +19,22 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody CreateTaskRequest createTaskRequest) {
+    public ResponseEntity<?> create(
+            @RequestBody CreateTaskRequest createTaskRequest
+    ) {
         TaskResponse taskResponse = taskService.createTask(createTaskRequest);
         return ResponseEntity.ok(taskResponse);
     }
 
     @PutMapping("{taskId}")
-    public ResponseEntity<?> update(@PathVariable long taskId, @RequestBody UpdateTaskRequest updateTaskRequest) {
-        TaskResponse taskResponse = taskService.updateTask(taskId, updateTaskRequest);
+    public ResponseEntity<?> update(
+            @PathVariable long taskId,
+            @RequestBody UpdateTaskRequest updateTaskRequest
+    ) {
+        TaskResponse taskResponse = taskService.updateTask(
+                taskId,
+                updateTaskRequest
+        );
         return ResponseEntity.ok(taskResponse);
     }
 
@@ -37,20 +44,20 @@ public class TaskController {
         return ResponseEntity.ok(taskResponse);
     }
 
-//    @GetMapping
-//    public ResponseEntity<List<TaskResponse>> getAllTasks() {
-//        return ResponseEntity.ok(taskService.getAllTasks());
-//    }
+    //    @GetMapping
+    //    public ResponseEntity<List<TaskResponse>> getAllTasks() {
+    //        return ResponseEntity.ok(taskService.getAllTasks());
+    //    }
 
-//    @GetMapping
-//    public ResponseEntity<Page<TaskResponse>> getTasksByPage(
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam List<String> sort
-//    ) {
-//        Page<TaskResponse> pageResponse = taskService.getAllTasksByPage(page, size, sort);
-//        return ResponseEntity.ok(pageResponse);
-//    }
+    //    @GetMapping
+    //    public ResponseEntity<Page<TaskResponse>> getTasksByPage(
+    //            @RequestParam(defaultValue = "0") int page,
+    //            @RequestParam(defaultValue = "10") int size,
+    //            @RequestParam List<String> sort
+    //    ) {
+    //        Page<TaskResponse> pageResponse = taskService.getAllTasksByPage(page, size, sort);
+    //        return ResponseEntity.ok(pageResponse);
+    //    }
 
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getTasksByPage(
@@ -58,13 +65,15 @@ public class TaskController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) List<String> sort
     ) {
-
         if (sort == null) {
             sort = List.of("id"); // default sorting
         }
 
-        Page<TaskResponse> pageResponse =
-                taskService.getAllTasksByPage(page, size, sort);
+        Page<TaskResponse> pageResponse = taskService.getAllTasksByPage(
+                page,
+                size,
+                sort
+        );
 
         return ResponseEntity.ok(pageResponse);
     }
@@ -80,7 +89,4 @@ public class TaskController {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
     }
-
-
 }
-

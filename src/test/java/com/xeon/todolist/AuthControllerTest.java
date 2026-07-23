@@ -3,6 +3,8 @@ package com.xeon.todolist;
 import com.xeon.todolist.controller.AuthController;
 import com.xeon.todolist.dto.LoginRequest;
 import com.xeon.todolist.dto.LoginResponse;
+import com.xeon.todolist.dto.RegisterRequest;
+import com.xeon.todolist.dto.RegisterResponse;
 import com.xeon.todolist.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -48,7 +50,29 @@ public class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("john-fake-token"));
 
+        Mockito.verify(authService, Mockito.times(1)).verifyUser(any(LoginRequest.class));
     }
+
+    @Test
+    void shouldRegisterTheUser() throws Exception {
+
+        RegisterRequest registerRequest = RegisterRequest.builder().username("User").password("Password").build();
+
+        RegisterResponse registerResponse = RegisterResponse.builder().username("User").build();
+
+        Mockito.when(authService.registerUser(any(RegisterRequest.class))).thenReturn(registerResponse);
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("User"));
+
+
+        Mockito.verify(authService, Mockito.times(1)).registerUser(any(RegisterRequest.class));
+    }
+
+
 
 
 
