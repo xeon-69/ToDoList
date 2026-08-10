@@ -26,7 +26,7 @@ public class TaskController {
         return ResponseEntity.ok(taskResponse);
     }
 
-    @PutMapping("{taskId}")
+    @PutMapping("/{taskId}")
     public ResponseEntity<?> update(
             @PathVariable long taskId,
             @RequestBody UpdateTaskRequest updateTaskRequest
@@ -38,7 +38,7 @@ public class TaskController {
         return ResponseEntity.ok(taskResponse);
     }
 
-    @PutMapping("{taskId}/toggle")
+    @PutMapping("/{taskId}/toggle")
     public ResponseEntity<?> toggleTask(@PathVariable long taskId) {
         TaskResponse taskResponse = taskService.toggleTaskStatus(taskId);
         return ResponseEntity.ok(taskResponse);
@@ -78,13 +78,13 @@ public class TaskController {
         return ResponseEntity.ok(pageResponse);
     }
 
-    @GetMapping("{taskId}")
+    @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable long taskId) {
         TaskResponse taskResponse = taskService.getTask(taskId);
         return ResponseEntity.ok(taskResponse);
     }
 
-    @DeleteMapping("{taskId}")
+    @DeleteMapping("/{taskId}")
     public ResponseEntity<?> deleteTask(@PathVariable long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();

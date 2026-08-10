@@ -11,7 +11,7 @@ import lombok.*;
 public class TaskResponse {
     private Long taskId;
     private String title;
-    private boolean isCompleted;
+    private Boolean isCompleted;
     private TaskPriority priority;
     private Integer priorityWeight;
     private long userId;

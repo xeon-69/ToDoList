@@ -3,12 +3,12 @@ package com.xeon.todolist.service;
 import com.xeon.todolist.dto.CreateTaskRequest;
 import com.xeon.todolist.dto.TaskResponse;
 import com.xeon.todolist.dto.UpdateTaskRequest;
+import com.xeon.todolist.entity.Tasks;
 import com.xeon.todolist.entity.Users;
 import com.xeon.todolist.exception.DuplicateTaskException;
 import com.xeon.todolist.exception.TaskAccessDeniedException;
 import com.xeon.todolist.exception.TaskNotFoundException;
 import com.xeon.todolist.mapper.TaskMapper;
-import com.xeon.todolist.entity.Tasks;
 import com.xeon.todolist.repository.TaskRepository;
 import com.xeon.todolist.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +80,7 @@ public class TaskService {
     public TaskResponse updateTask(long taskId, UpdateTaskRequest updateTaskRequest) {
         Tasks taskToUpdate = getTaskAndValidateOwnership(taskId);
         taskToUpdate.setTitle(updateTaskRequest.getTitle());
-        taskToUpdate.setCompleted(updateTaskRequest.isCompleted());
+        taskToUpdate.setCompleted(updateTaskRequest.getIsCompleted());
         taskToUpdate.setPriority(updateTaskRequest.getPriority());
         Tasks updatedTask = taskRepository.saveAndFlush(taskToUpdate);
         log.info("Task ID: {} has been updated", updatedTask.getId());

@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UpdateTaskRequest {
     private String title;
-    private boolean isCompleted;
+    private Boolean isCompleted;
     private TaskPriority priority;
 }

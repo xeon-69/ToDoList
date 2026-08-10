@@ -109,13 +109,14 @@ class TaskServiceTest {
 
         when(securityUtil.getCurrentUser()).thenReturn(user);
         when(taskRepository.saveAndFlush(any(Tasks.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(taskMapper.toResponse(task)).thenReturn(exceptedTaskResponse);
+        when(taskMapper.toResponse(any(Tasks.class)))
+                .thenReturn(exceptedTaskResponse);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
 
         TaskResponse taskResponse = taskService.toggleTaskStatus(1L);
 
-        assertTrue(taskResponse.isCompleted());
+        assertTrue(taskResponse.getIsCompleted());
         assertEquals(exceptedTaskResponse, taskResponse);
 
         verify(taskRepository).saveAndFlush(task);
